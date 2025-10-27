@@ -1,18 +1,19 @@
+// gerar-hash.js
 const crypto = require("crypto");
 
-const answer = "faca"; // troque aqui a resposta secreta localmente
-const salt = crypto.randomBytes(6).toString("hex"); // 12 hex chars
-const iterations = 50000; // ajuste conforme quiser
-const hash = crypto
-  .pbkdf2Sync(
-    String(answer),
-    Buffer.from(salt, "hex"),
-    iterations,
-    32,
-    "sha256"
-  )
-  .toString("hex");
+// 👉 Edite aqui sua resposta e configurações
+const resposta = "17"; // resposta correta
+const salt = "halloween_salt_2025"; // pode mudar para algo único
+const iterations = 100000; // quanto maior, mais lento, porém mais seguro
 
-console.log("salt:", salt);
-console.log("iterations:", iterations);
-console.log("hash:", hash);
+// Gerar o hash
+const hash = crypto
+  .pbkdf2Sync(resposta, salt, iterations, 32, "sha256")
+  .toString("base64");
+
+console.log("=== Gerador de Hash de Enigma ===");
+console.log(`Resposta: ${resposta}`);
+console.log(`Salt: ${salt}`);
+console.log(`Iterações: ${iterations}`);
+console.log(`Hash gerado:\n${hash}`);
+console.log("\nCopie esses valores e substitua no index.js");
