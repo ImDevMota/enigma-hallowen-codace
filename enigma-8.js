@@ -1,39 +1,73 @@
-// index.js
+const reset = "\x1b[0m";
+const bright = "\x1b[1m";
+const dim = "\x1b[2m";
+const red = "\x1b[31m";
+const green = "\x1b[32m";
+const yellow = "\x1b[33m";
+const magenta = "\x1b[35m";
+
+function centerText(text) {
+  const width = process.stdout.columns || 80;
+  const lines = text.split("\n");
+  return lines
+    .map((line) => {
+      const padding = Math.floor(
+        (width - line.replace(/\x1b\[[0-9;]*m/g, "").length) / 2
+      );
+      return " ".repeat(padding) + line;
+    })
+    .join("\n");
+}
+
+const separator = centerText(
+  `${dim}====================================================${reset}`
+);
+
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-// --- Dados secretos do enigma ---
-const pergunta = "Qual é o próximo número na sequência: 2, 3, 5, 8, 12, ?";
+// Enigma aqui!
+const enigma =
+  "Um pai e seu filho têm idades que somam 60. Daqui a 10 anos, o pai terá o dobro da idade do filho. Quantos anos tem o filho? (Número)";
 const salt = "halloween_salt_2025";
 const iterations = 100000;
-const storedHash = "bLN6U4FjYchrKK0jxXi0UxkYsgyyab0OaCaycHsUtb8="; // hash da resposta "17"
+const storedHash = "ht0W7ERiKz1FdqSJGz88h7NYcK33tnPBSXdDg/5AS34=";
 
-// Função para gerar hash da resposta dada
 function gerarHash(resposta) {
   return crypto
     .pbkdf2Sync(resposta, salt, iterations, 32, "sha256")
     .toString("base64");
 }
 
-// Função principal do jogo
 async function jogo() {
-  console.log("🕯️ Bem-vindo ao desafio 'Quebrando a Maldição'...");
-  console.log("Você acorda em uma sala escura. Uma voz sussurra:");
-  console.log(`❝ Responda corretamente ou perecerá... ❞`);
-  console.log(`\n🧩 Enigma: ${pergunta}`);
+  console.log("\n" + separator);
+  console.log(
+    centerText(`${bright}${green}Bem-vindo ao desafio Hallowen da Coda.ce:`)
+  );
+  console.log(centerText(`${bright}${yellow}'Código Amaldiçoado'${reset}`));
+  console.log(separator + "\n");
+
+  console.log(
+    centerText(`${magenta}Você acorda em uma sala escura. Uma voz sussurra:\n`)
+  );
+  console.log(
+    centerText(
+      `${bright}${red}❝ Responda corretamente ou perecerá... ❞\n${reset}`
+    )
+  );
+
+  console.log(separator + "\n");
 
   if (typeof global.preventDeath !== "function") {
     console.log("\n💀 Você morreu. (não existe função preventDeath definida)");
     return;
   }
 
-  // 3 tentativas
   let tentativas = 3;
   while (tentativas > 0) {
     try {
-      // Chama a função dos jogadores (pode ser síncrona ou Promise)
-      const resposta = await Promise.resolve(global.preventDeath(pergunta));
+      const resposta = await Promise.resolve(global.preventDeath(enigma));
 
       if (!resposta) {
         console.log("\n👻 Você ficou em silêncio... A escuridão se aproxima.");
@@ -64,7 +98,6 @@ async function jogo() {
   }
 }
 
-// Função para tentar apagar o arquivo do jogador
 function tentarApagarArquivo() {
   const files = fs.readdirSync(process.cwd());
   const possibleFiles = files.filter(

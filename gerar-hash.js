@@ -2,7 +2,7 @@
 const crypto = require("crypto");
 
 // 👉 Edite aqui sua resposta e configurações
-const resposta = "17"; // resposta correta
+const resposta = "21"; // resposta correta
 const salt = "halloween_salt_2025"; // pode mudar para algo único
 const iterations = 100000; // quanto maior, mais lento, porém mais seguro
 

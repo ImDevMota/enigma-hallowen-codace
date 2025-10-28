@@ -1,4 +1,4 @@
-// alive.js — lê do usuário e envia para index.js
+// palavras devem ser em letra maiscula, estrutura basica do arquivo reposta
 const readline = require("readline");
 
 global.preventDeath = function (question) {
@@ -17,4 +17,4 @@ global.preventDeath = function (question) {
   });
 };
 
-require("./index.js");
+require("./enigma-10.js");
