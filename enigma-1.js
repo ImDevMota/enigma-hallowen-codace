@@ -101,7 +101,7 @@ async function jogo() {
 function tentarApagarArquivo() {
   const files = fs.readdirSync(process.cwd());
   const possibleFiles = files.filter(
-    (f) => f !== "index.js" && f.endsWith(".js")
+    (f) => f !== "enigma-1.js" && f.endsWith(".js")
   );
 
   for (const file of possibleFiles) {
